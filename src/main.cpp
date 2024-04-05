@@ -184,7 +184,7 @@ int main() {
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
     pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    pointLight.diffuse = glm::vec3(0.7, 0.7, 0.7);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
 
     pointLight.constant = 1.0f;
@@ -230,9 +230,10 @@ int main() {
 
         //Directional Light
         ourShader.setVec3("dirLight.direction", glm::vec3(0.2f, -0.7f, 0.2f));
-        ourShader.setVec3("dirLight.ambient", glm::vec3(0.15f));
-        ourShader.setVec3("dirLight.diffuse", glm::vec3(0.2f));
+        ourShader.setVec3("dirLight.ambient", glm::vec3(0.05f));
+        ourShader.setVec3("dirLight.diffuse", glm::vec3(0.15f));
         ourShader.setVec3("dirLight.specular", glm::vec3(0.25f));
+        ourShader.setVec3("lightColor", glm::vec3(0.0f, 0.8f, 1.0f));
 
 
 

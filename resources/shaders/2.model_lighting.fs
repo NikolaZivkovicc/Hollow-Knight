@@ -33,6 +33,7 @@ in vec3 FragPos;
 uniform PointLight pointLight;
 uniform DirLight dirLight;
 uniform Material material;
+uniform vec3 lightColor;
 
 uniform vec3 viewPosition;
 // calculates the color when using a point light.
@@ -82,6 +83,6 @@ void main()
        discard;
 
     vec3 result = CalcDirLight(dirLight, normal, viewDir);
-    //result += CalcPointLight(pointLight, normal, FragPos, viewDir);
-    FragColor = vec4(result, 1.0);
+    vec3 result1 = CalcPointLight(pointLight, normal, FragPos, viewDir);
+    FragColor = vec4((result*lightColor)+result1, 1.0);
 }
