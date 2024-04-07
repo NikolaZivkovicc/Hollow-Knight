@@ -170,10 +170,18 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
-    Shader skyboxShader("resources/Skybox/skybox.vs", "resources/Skybox/skybox.fs");
+    Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
 
     // load models
     // -----------
+
+
+    Model hornet("resources/objects/hornet_-_hollow_knight/scene.gltf");
+    hornet.SetShaderTextureNamePrefix("material.");
+
+    Model hollowknight("resources/objects/hollowKnight/untitled.obj");
+    hollowknight.SetShaderTextureNamePrefix("material.");
+
 
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
@@ -181,8 +189,8 @@ int main() {
 
 
 
-    Model ourModel("resources/objects/backpack/backpack.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+//    Model ourModel("resources/objects/backpack/backpack.obj");
+//    ourModel.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -255,12 +263,12 @@ int main() {
 
     vector<std::string> faces
             {
-                    FileSystem::getPath("resources/Skybox_textures/right.png"),
                     FileSystem::getPath("resources/Skybox_textures/left.png"),
-                    FileSystem::getPath("resources/Skybox_textures/top.png"),
+                    FileSystem::getPath("resources/Skybox_textures/right.png"),
                     FileSystem::getPath("resources/Skybox_textures/bottom.png"),
-                    FileSystem::getPath("resources/Skybox_textures/front.png"),
-                    FileSystem::getPath("resources/Skybox_textures/back.png")
+                    FileSystem::getPath("resources/Skybox_textures/top.png"),
+                    FileSystem::getPath("resources/Skybox_textures/back.png"),
+                    FileSystem::getPath("resources/Skybox_textures/front.png")
             };
 
     unsigned int cubemapTexture = loadCubemap(faces);
@@ -293,7 +301,7 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        pointLight.position = glm::vec3(0.0f, 3.0f, -7.0f);
+        pointLight.position = glm::vec3(-5.0f, 3.0f, 7.0f);
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -306,9 +314,9 @@ int main() {
 
         //Directional Light
         ourShader.setVec3("dirLight.direction", glm::vec3(0.2f, -0.7f, 0.2f));
-        ourShader.setVec3("dirLight.ambient", glm::vec3(0.05f));
-        ourShader.setVec3("dirLight.diffuse", glm::vec3(0.15f));
-        ourShader.setVec3("dirLight.specular", glm::vec3(0.25f));
+        ourShader.setVec3("dirLight.ambient", glm::vec3(0.15f));
+        ourShader.setVec3("dirLight.diffuse", glm::vec3(0.25f));
+        ourShader.setVec3("dirLight.specular", glm::vec3(0.35f));
         ourShader.setVec3("lightColor", glm::vec3(0.0f, 0.8f, 1.0f));
 
 
@@ -324,12 +332,33 @@ int main() {
 
 
         // render the loaded model
+//        glm::mat4 model = glm::mat4(1.0f);
+//        model = glm::translate(model,
+//                               programState->backpackPosition); // translate it down so it's at the center of the scene
+//        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+//        ourShader.setMat4("model", model);
+//        ourModel.Draw(ourShader);
+
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(0.65f));
         ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        hornet.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(4.0f, 0.0f, 4.0f));
+        model = glm::rotate(model, glm::radians(-135.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.01f));
+        ourShader.setMat4("model", model);
+        hollowknight.Draw(ourShader);
+
+
+
+
+
+
 //------------------------------------------------
         glDepthMask(GL_FALSE);
         glDepthFunc(GL_LEQUAL);
