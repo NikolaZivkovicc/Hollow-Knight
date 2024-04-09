@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pile of books
+* source:	https://sketchfab.com/3d-models/pile-of-books-822e51eef741496d926bea1fbc32db7b
+* author:	Brenwltrs (https://sketchfab.com/Brenwltrs)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pile of books" (https://sketchfab.com/3d-models/pile-of-books-822e51eef741496d926bea1fbc32db7b) by Brenwltrs (https://sketchfab.com/Brenwltrs) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

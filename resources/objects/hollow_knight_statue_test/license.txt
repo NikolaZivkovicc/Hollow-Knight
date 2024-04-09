@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hollow Knight_Statue Test
+* source:	https://sketchfab.com/3d-models/hollow-knight-statue-test-7fb678c884f7491c96824f9ac45dea58
+* author:	Enrico Labarile (https://sketchfab.com/enrico.labarile)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hollow Knight_Statue Test" (https://sketchfab.com/3d-models/hollow-knight-statue-test-7fb678c884f7491c96824f9ac45dea58) by Enrico Labarile (https://sketchfab.com/enrico.labarile) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

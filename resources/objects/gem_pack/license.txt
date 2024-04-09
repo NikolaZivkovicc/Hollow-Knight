@@ -1,0 +1,11 @@
+Model Information:
+* title:	Gem Pack
+* source:	https://sketchfab.com/3d-models/gem-pack-d040fbbea3f441c5b2ba3cb1ecc9eb6c
+* author:	C. Anastasiadis (https://sketchfab.com/bagatir)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Gem Pack" (https://sketchfab.com/3d-models/gem-pack-d040fbbea3f441c5b2ba3cb1ecc9eb6c) by C. Anastasiadis (https://sketchfab.com/bagatir) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

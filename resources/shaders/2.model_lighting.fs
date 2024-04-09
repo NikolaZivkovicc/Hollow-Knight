@@ -34,6 +34,7 @@ uniform PointLight pointLight;
 uniform DirLight dirLight;
 uniform Material material;
 uniform vec3 lightColor;
+uniform vec3 color;
 
 uniform vec3 viewPosition;
 // calculates the color when using a point light.
@@ -79,10 +80,10 @@ void main()
     vec3 viewDir = normalize(viewPosition - FragPos);
     //  Blending
     vec4 texColor = texture(material.texture_diffuse1, TexCoords);
-    if(texColor.a < 0.1f)
+    if(texColor.a < 0.5f)
        discard;
 
     vec3 result = CalcDirLight(dirLight, normal, viewDir);
     vec3 result1 = CalcPointLight(pointLight, normal, FragPos, viewDir);
-    FragColor = vec4((result*lightColor)+result1, 1.0);
+    FragColor = vec4((result*lightColor)+result1*color, 1.0);
 }

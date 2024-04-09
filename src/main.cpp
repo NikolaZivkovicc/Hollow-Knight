@@ -59,8 +59,29 @@ struct ProgramState {
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
-    float backpackScale = 1.0f;
+    glm::vec3 tablePosition = glm::vec3(-1.0f, -3.9f, 3.0f);
+    glm::vec3 hollowknightPosition = glm::vec3(0.0f, 0.3f, 13.0f);
+    glm::vec3 paintbrushPosition = glm::vec3(5.0f, -0.85f, -1.0f);
+    glm::vec3 hornetPosition = glm::vec3(0.0f, -0.15f, 0.0f);
+    glm::vec3 statuePosition = glm::vec3(-9.0f, 4.5f, 7.0f);
+    glm::vec3 gemPosition = glm::vec3(7.0f, -0.84f, 15.0f);
+    glm::vec3 candlePosition = glm::vec3(-9.0f, 0.3f, 22.0f);
+    glm::vec3 booksPosition = glm::vec3(6.0f, 2.75f, -23.0f);
+    glm::vec3 ghostPosition = glm::vec3(-5.0f, 9.5f, -8.0f);
+    glm::vec3 rubikscubePosition = glm::vec3(-6.0f, 8.0f, 26.0f);
+    float tableScale = 40.0f;
+    float paintbrushScale = 1.5f;
+    float statueScale = 6.0f;
+    float gemScale = 0.8f;
+    float candleScale = 1.0f;
+    float booksScale = 0.2f;
+    float ghostScale = 11.0f;
+    float rubikscubeScale = 0.5f;
+
+
+
     PointLight pointLight;
+
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
 
@@ -182,25 +203,44 @@ int main() {
     Model hollowknight("resources/objects/hollowKnight/untitled.obj");
     hollowknight.SetShaderTextureNamePrefix("material.");
 
+    Model table("resources/objects/antique_wooden_desk/scene.gltf");
+    table.SetShaderTextureNamePrefix("material.");
 
+    Model paintBrush("resources/objects/cc0_-_paint_brush_3/scene.gltf");
+    paintBrush.SetShaderTextureNamePrefix("material.");
+
+    Model statue("resources/objects/hollow_knight_statue_test/scene.gltf");
+    statue.SetShaderTextureNamePrefix("material.");
+
+    Model gem("resources/objects/gem_pack/scene.gltf");
+    gem.SetShaderTextureNamePrefix("material.");
+
+    Model candle("resources/objects/candle/scene.gltf");
+    candle.SetShaderTextureNamePrefix("material.");
+
+    Model books("resources/objects/pile_of_books/scene.gltf");
+    books.SetShaderTextureNamePrefix("material.");
+
+    Model ghost("resources/objects/hollow_knight_grimmchild_animation/scene.gltf");
+    ghost.SetShaderTextureNamePrefix("material.");
+
+    Model rubiksCube("resources/objects/rubiks_cube/scene.gltf");
+    rubiksCube.SetShaderTextureNamePrefix("material.");
 
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     stbi_set_flip_vertically_on_load(true);
 
 
-
-//    Model ourModel("resources/objects/backpack/backpack.obj");
-//    ourModel.SetShaderTextureNamePrefix("material.");
-
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
-    pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    pointLight.diffuse = glm::vec3(0.7, 0.7, 0.7);
+    pointLight.ambient = glm::vec3(0.15, 0.15, 0.15);
+    pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
+    glm::vec3 color = glm::vec3(1.0f, 0.7f, 0.0f);
 
     pointLight.constant = 1.0f;
-    pointLight.linear = 0.09f;
-    pointLight.quadratic = 0.032f;
+    pointLight.linear = 0.05f;
+    pointLight.quadratic = 0.005f;
 
 
 
@@ -276,6 +316,11 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
+    glm::mat4 rotation_mat1(1.0f);
+    glm::mat4 rotation_mat2(1.0f);
+    glm::mat4 rotation_comb(1.0f);
+    glm::mat4 rotation_alfa(1.0f);
+
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -301,7 +346,7 @@ int main() {
 
         // don't forget to enable shader before setting uniforms
         ourShader.use();
-        pointLight.position = glm::vec3(-5.0f, 3.0f, 7.0f);
+        pointLight.position = glm::vec3(-9.0f, 2.0f, 22.0f);
         ourShader.setVec3("pointLight.position", pointLight.position);
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -310,13 +355,14 @@ int main() {
         ourShader.setFloat("pointLight.linear", pointLight.linear);
         ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
+        ourShader.setVec3("color", color);
         ourShader.setFloat("material.shininess", 32.0f);
 
         //Directional Light
         ourShader.setVec3("dirLight.direction", glm::vec3(0.2f, -0.7f, 0.2f));
-        ourShader.setVec3("dirLight.ambient", glm::vec3(0.15f));
-        ourShader.setVec3("dirLight.diffuse", glm::vec3(0.25f));
-        ourShader.setVec3("dirLight.specular", glm::vec3(0.35f));
+        ourShader.setVec3("dirLight.ambient", glm::vec3(0.25f));
+        ourShader.setVec3("dirLight.diffuse", glm::vec3(0.35f));
+        ourShader.setVec3("dirLight.specular", glm::vec3(0.45f));
         ourShader.setVec3("lightColor", glm::vec3(0.0f, 0.8f, 1.0f));
 
 
@@ -329,33 +375,76 @@ int main() {
         ourShader.setMat4("view", view);
 
 
-
-
-        // render the loaded model
-//        glm::mat4 model = glm::mat4(1.0f);
-//        model = glm::translate(model,
-//                               programState->backpackPosition); // translate it down so it's at the center of the scene
-//        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
-//        ourShader.setMat4("model", model);
-//        ourModel.Draw(ourShader);
-
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::translate(model, programState->hornetPosition);
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.65f));
+        model = glm::scale(model, glm::vec3(0.7f));
         ourShader.setMat4("model", model);
         hornet.Draw(ourShader);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(4.0f, 0.0f, 4.0f));
-        model = glm::rotate(model, glm::radians(-135.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.01f));
+        model = glm::translate(model, programState->hollowknightPosition);
+        model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.02f));
         ourShader.setMat4("model", model);
         hollowknight.Draw(ourShader);
 
 
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->tablePosition);
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->tableScale));
+        ourShader.setMat4("model", model);
+        table.Draw(ourShader);
 
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->paintbrushPosition);
+        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->paintbrushScale));
+        ourShader.setMat4("model", model);
+        paintBrush.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->statuePosition);
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->statueScale));
+        ourShader.setMat4("model", model);
+        statue.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->gemPosition);
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->gemScale));
+        ourShader.setMat4("model", model);
+        gem.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->candlePosition);
+        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->candleScale));
+        ourShader.setMat4("model", model);
+        candle.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->booksPosition);
+        model = glm::rotate(model, glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->booksScale));
+        ourShader.setMat4("model", model);
+        books.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->ghostPosition + glm::vec3(0.0f, cos(currentFrame)*2, 0.0f));
+        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->ghostScale));
+        ourShader.setMat4("model", model);
+        ghost.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->rubikscubePosition);
+        model = glm::scale(model, glm::vec3(programState->rubikscubeScale));
+        ourShader.setMat4("model", model);
+        rubiksCube.Draw(ourShader);
 
 
 
@@ -459,8 +548,11 @@ void DrawImGui(ProgramState *programState) {
         ImGui::Text("Hello text");
         ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat3("ghost position", (float*)&programState->ghostPosition);
+        ImGui::DragFloat3("hornet position", (float*)&programState->hornetPosition);
+        ImGui::DragFloat3("statue position", (float*)&programState->statuePosition);
+        ImGui::DragFloat("books scale", &programState->booksScale, 0.05, 0.1, 40.0);
+        ImGui::DragFloat("ghost scale", &programState->ghostScale, 0.05, 0.1, 40.0);
 
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
