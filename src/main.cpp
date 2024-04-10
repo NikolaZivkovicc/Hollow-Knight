@@ -29,8 +29,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 unsigned int loadCubemap(vector<std::string> faces);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+unsigned int SCR_WIDTH = 1600;
+unsigned int SCR_HEIGHT = 900;
+const unsigned int framebufferWidth = 1600;
+const unsigned int framebufferHeight = 900;
 
 // camera
 
@@ -88,6 +90,9 @@ struct ProgramState {
     float notebookScale = 0.05f;
 
 
+    bool hdr = true;
+    bool bloom = true;
+    float exposure = 1.0f;
 
 
     PointLight pointLight;
@@ -202,6 +207,8 @@ int main() {
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
+    Shader hdrBloomShader("resources/shaders/hdrBloom.vs", "resources/shaders/hdrBloom.fs");
+    Shader blurShader("resources/shaders/blur.vs", "resources/shaders/blur.fs");
 
     // load models
     // -----------
@@ -253,6 +260,101 @@ int main() {
     stbi_set_flip_vertically_on_load(true);
 
 
+    //hdr---------------------------------------------------------------------------------------------------------
+    unsigned int VAO, VBO, RBO;
+    unsigned int framebuffer;
+//    unsigned int textureColorBuffer;
+    unsigned int colorBuffers[2];
+    unsigned int pingpongFBO[2], pingpongColorBuffers[2];
+
+    hdrBloomShader.use();
+    hdrBloomShader.setInt("scene", 0);
+    hdrBloomShader.setInt("bloomBlur", 1);
+//    hdrBloomShader.setInt("screenTexture", 2);
+
+    blurShader.use();
+    blurShader.setInt("image", 0);
+
+    float vertices[] = {
+            // positions   // texCoords
+            -1.0f,  1.0f,  0.0f, 1.0f,
+            -1.0f, -1.0f,  0.0f, 0.0f,
+            1.0f, -1.0f,  1.0f, 0.0f,
+
+            -1.0f,  1.0f,  0.0f, 1.0f,
+            1.0f, -1.0f,  1.0f, 0.0f,
+            1.0f,  1.0f,  1.0f, 1.0f
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices),&vertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) nullptr);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
+
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+
+    glGenTextures(2, colorBuffers);
+    for (int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth,framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,
+                               GL_TEXTURE_2D, colorBuffers[i], 0);
+    }
+
+//    glGenTextures(1, &textureColorBuffer);
+//    glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+//    glTexImage2D(GL_TEXTURE_2D, 4, GL_RGB, framebufferWidth,
+//                            framebufferHeight, GL_TRUE);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, textureColorBuffer, 0);
+
+
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT ,framebufferWidth, framebufferHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
+        std::cerr << "Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glGenFramebuffers(2, pingpongFBO);
+    glGenTextures(2, pingpongColorBuffers);
+    for (int i = 0; i < 2; i++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, pingpongColorBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth,framebufferHeight, 0, GL_RGBA, GL_FLOAT , nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, pingpongColorBuffers[i], 0);
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
+            std::cerr << "Pingpong framebuffer is not complete!" << std::endl;
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
+//-----------------------------------------------------------------------------
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
     pointLight.ambient = glm::vec3(0.15, 0.15, 0.15);
@@ -261,9 +363,9 @@ int main() {
     glm::vec3 color1 = glm::vec3(1.0f, 0.7f, 0.0f);
     glm::vec3 color2 = glm::vec3(0.5f, 0.0f, 1.0f);
 
-    pointLight.constant = 0.8f;
-    pointLight.linear = 0.01f;
-    pointLight.quadratic = 0.001f;
+    pointLight.constant = 1.0f;
+    pointLight.linear = 0.2f;
+    pointLight.quadratic = 0.5f;
 
 
 
@@ -357,17 +459,26 @@ int main() {
         processInput(window);
 
 
+        //----------------
+        glViewport(0, 0, framebufferWidth, framebufferHeight);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glEnable(GL_DEPTH_TEST);
+
+        //--------------------
+
         // render
         // ------
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
         // point lights
         ourShader.use();
-        pointLight.position = glm::vec3(-9.0f, 2.0f, 22.0f);
+        pointLight.position = glm::vec3(-9.0f, 2.1f, 22.0f);
         ourShader.setVec3("pointLight[0].position", pointLight.position);
         ourShader.setVec3("pointLight[0].ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight[0].diffuse", pointLight.diffuse);
+        ourShader.setVec3("pointLight[0].diffuse", glm::vec3(10.0f));
         ourShader.setVec3("pointLight[0].specular", pointLight.specular);
         ourShader.setFloat("pointLight[0].constant", pointLight.constant);
         ourShader.setFloat("pointLight[0].linear", pointLight.linear);
@@ -376,10 +487,10 @@ int main() {
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
 
-        pointLight.position = programState->ghostPosition + glm::vec3(0.0f, cos(currentFrame)*2, 0.0f);
+        pointLight.position = programState->ghostPosition + glm::vec3(0.0f, 2 + cos(currentFrame)*2, 0.0f);
         ourShader.setVec3("pointLight[1].position", pointLight.position);
         ourShader.setVec3("pointLight[1].ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight[1].diffuse", pointLight.diffuse);
+        ourShader.setVec3("pointLight[1].diffuse", glm::vec3(10.0f));
         ourShader.setVec3("pointLight[1].specular", pointLight.specular);
         ourShader.setFloat("pointLight[1].constant", pointLight.constant);
         ourShader.setFloat("pointLight[1].linear", pointLight.linear);
@@ -523,6 +634,61 @@ int main() {
 
 
 
+        //--------------------
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        bool horizontal = true;
+        bool firstIteration = true;
+        unsigned int amount = 10;
+
+        blurShader.use();
+
+//        blurShader.setInt("framebufferWidth", SCR_WIDTH);
+//        blurShader.setInt("framebufferHeight", SCR_HEIGHT);
+
+        glBindVertexArray(VAO);
+        for (unsigned int i = 0; i < amount; i++) {
+            glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+            blurShader.setInt("horizontal", horizontal);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, firstIteration ? colorBuffers[1] : pingpongColorBuffers[!horizontal]);
+
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            horizontal = !horizontal;
+            if (firstIteration)
+                firstIteration = false;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_DEPTH_TEST);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        hdrBloomShader.use();
+
+//        hdrBloomShader.setInt("framebufferWidth", framebufferWidth);
+//        hdrBloomShader.setInt("framebufferHeight", framebufferHeight);
+
+        hdrBloomShader.setBool("hdr", programState->hdr);
+        hdrBloomShader.setBool("bloom", programState->bloom);
+        hdrBloomShader.setFloat("exposure", programState->exposure);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, pingpongColorBuffers[!horizontal]);
+//        glActiveTexture(GL_TEXTURE2);
+//        glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+
+        //---------------------------------
+
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
 
@@ -533,6 +699,16 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteRenderbuffers(1, &RBO);
+
+    glDeleteFramebuffers(1, &framebuffer);
+    glDeleteFramebuffers(2, pingpongFBO);
+
+//    glDeleteTextures(1, &textureColorBuffer);
+    glDeleteTextures(2, colorBuffers);
+    glDeleteTextures(2, pingpongColorBuffers);
 
     programState->SaveToFile("resources/program_state.txt");
     delete programState;
@@ -559,6 +735,19 @@ void processInput(GLFWwindow *window) {
         programState->camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         programState->camera.ProcessKeyboard(RIGHT, deltaTime);
+    if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS){
+        if(programState->exposure < 5.0f)
+            programState->exposure += 0.005f;
+        else
+            programState->exposure = 5.0f;
+    }
+    if(glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS){
+        if(programState->exposure > 0.2f)
+            programState->exposure -= 0.005f;
+        else
+            programState->exposure = 0.2f;
+    }
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -566,7 +755,9 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    //glViewport(0, 0, width, height);
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
 }
 
 // glfw: whenever the mouse moves, this callback is called
@@ -642,6 +833,10 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
+    if(key == GLFW_KEY_H && action == GLFW_PRESS)
+        programState->hdr = !programState->hdr;
+    if(key == GLFW_KEY_B && action == GLFW_PRESS)
+        programState->bloom = !programState->bloom;
 }
 
 unsigned int loadCubemap(vector<std::string> faces) {
