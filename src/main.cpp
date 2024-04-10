@@ -64,19 +64,29 @@ struct ProgramState {
     glm::vec3 paintbrushPosition = glm::vec3(5.0f, -0.85f, -1.0f);
     glm::vec3 hornetPosition = glm::vec3(0.0f, -0.15f, 0.0f);
     glm::vec3 statuePosition = glm::vec3(-9.0f, 4.5f, 7.0f);
-    glm::vec3 gemPosition = glm::vec3(7.0f, -0.84f, 15.0f);
+    glm::vec3 gemPosition = glm::vec3(7.0f, 0.0f, 15.6f);
     glm::vec3 candlePosition = glm::vec3(-9.0f, 0.3f, 22.0f);
     glm::vec3 booksPosition = glm::vec3(6.0f, 2.75f, -23.0f);
     glm::vec3 ghostPosition = glm::vec3(-5.0f, 9.5f, -8.0f);
-    glm::vec3 rubikscubePosition = glm::vec3(-6.0f, 8.0f, 26.0f);
+    glm::vec3 rubikscubePosition = glm::vec3(-9.0f, 0.3f, 31.0f);
+    glm::vec3 bushPosition = glm::vec3(10.0f, 1.3f, 19.0f);
+    glm::vec3 doorPosition = glm::vec3(54.0f, 76.0f, 5.0f);
+    glm::vec3 HKPosition = glm::vec3(-10.0f, -1.2f, -18.0f);
+    glm::vec3 notebookPosition = glm::vec3(8.0f, -0.8f, 32.0f);
+
     float tableScale = 40.0f;
     float paintbrushScale = 1.5f;
     float statueScale = 6.0f;
-    float gemScale = 0.8f;
+    float gemScale = 2.0f;
     float candleScale = 1.0f;
     float booksScale = 0.2f;
     float ghostScale = 11.0f;
     float rubikscubeScale = 0.5f;
+    float bushScale = 5.0f;
+    float doorScale = 20.0f;
+    float HKScale = 0.5f;
+    float notebookScale = 0.05f;
+
 
 
 
@@ -227,6 +237,18 @@ int main() {
     Model rubiksCube("resources/objects/rubiks_cube/scene.gltf");
     rubiksCube.SetShaderTextureNamePrefix("material.");
 
+    Model bush1("resources/objects/stylized_bush_v1/scene.gltf");
+    bush1.SetShaderTextureNamePrefix("material.");
+
+    Model door("resources/objects/wooden_door/scene.gltf");
+    door.SetShaderTextureNamePrefix("material.");
+
+    Model HK("resources/objects/hollowKnight2/untitled.obj");
+    HK.SetShaderTextureNamePrefix("material.");
+
+    Model notebook("resources/objects/notebook/scene.gltf");
+    notebook.SetShaderTextureNamePrefix("material.");
+
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     stbi_set_flip_vertically_on_load(true);
 
@@ -236,11 +258,12 @@ int main() {
     pointLight.ambient = glm::vec3(0.15, 0.15, 0.15);
     pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
-    glm::vec3 color = glm::vec3(1.0f, 0.7f, 0.0f);
+    glm::vec3 color1 = glm::vec3(1.0f, 0.7f, 0.0f);
+    glm::vec3 color2 = glm::vec3(0.5f, 0.0f, 1.0f);
 
-    pointLight.constant = 1.0f;
-    pointLight.linear = 0.05f;
-    pointLight.quadratic = 0.005f;
+    pointLight.constant = 0.8f;
+    pointLight.linear = 0.01f;
+    pointLight.quadratic = 0.001f;
 
 
 
@@ -316,11 +339,6 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
-    glm::mat4 rotation_mat1(1.0f);
-    glm::mat4 rotation_mat2(1.0f);
-    glm::mat4 rotation_comb(1.0f);
-    glm::mat4 rotation_alfa(1.0f);
-
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -344,19 +362,30 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
+        // point lights
         ourShader.use();
         pointLight.position = glm::vec3(-9.0f, 2.0f, 22.0f);
-        ourShader.setVec3("pointLight.position", pointLight.position);
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+        ourShader.setVec3("pointLight[0].position", pointLight.position);
+        ourShader.setVec3("pointLight[0].ambient", pointLight.ambient);
+        ourShader.setVec3("pointLight[0].diffuse", pointLight.diffuse);
+        ourShader.setVec3("pointLight[0].specular", pointLight.specular);
+        ourShader.setFloat("pointLight[0].constant", pointLight.constant);
+        ourShader.setFloat("pointLight[0].linear", pointLight.linear);
+        ourShader.setFloat("pointLight[0].quadratic", pointLight.quadratic);
+        ourShader.setVec3("color[0]", color1);
         ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setVec3("color", color);
         ourShader.setFloat("material.shininess", 32.0f);
+
+        pointLight.position = programState->ghostPosition + glm::vec3(0.0f, cos(currentFrame)*2, 0.0f);
+        ourShader.setVec3("pointLight[1].position", pointLight.position);
+        ourShader.setVec3("pointLight[1].ambient", pointLight.ambient);
+        ourShader.setVec3("pointLight[1].diffuse", pointLight.diffuse);
+        ourShader.setVec3("pointLight[1].specular", pointLight.specular);
+        ourShader.setFloat("pointLight[1].constant", pointLight.constant);
+        ourShader.setFloat("pointLight[1].linear", pointLight.linear);
+        ourShader.setFloat("pointLight[1].quadratic", pointLight.quadratic);
+        ourShader.setVec3("color[1]", color2);
+
 
         //Directional Light
         ourShader.setVec3("dirLight.direction", glm::vec3(0.2f, -0.7f, 0.2f));
@@ -442,10 +471,39 @@ int main() {
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, programState->rubikscubePosition);
+        model = glm::rotate(model, glm::radians(25.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(programState->rubikscubeScale));
         ourShader.setMat4("model", model);
         rubiksCube.Draw(ourShader);
 
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->bushPosition);
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->bushScale));
+        ourShader.setMat4("model", model);
+        bush1.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->doorPosition);
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->doorScale));
+        ourShader.setMat4("model", model);
+        door.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->HKPosition);
+        model = glm::scale(model, glm::vec3(programState->HKScale));
+        ourShader.setMat4("model", model);
+        HK.Draw(ourShader);
+
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->notebookPosition);
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(programState->notebookScale));
+        ourShader.setMat4("model", model);
+        notebook.Draw(ourShader);
 
 
 //------------------------------------------------
@@ -550,9 +608,9 @@ void DrawImGui(ProgramState *programState) {
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
         ImGui::DragFloat3("ghost position", (float*)&programState->ghostPosition);
         ImGui::DragFloat3("hornet position", (float*)&programState->hornetPosition);
-        ImGui::DragFloat3("statue position", (float*)&programState->statuePosition);
-        ImGui::DragFloat("books scale", &programState->booksScale, 0.05, 0.1, 40.0);
-        ImGui::DragFloat("ghost scale", &programState->ghostScale, 0.05, 0.1, 40.0);
+        ImGui::DragFloat3("np position", (float*)&programState->notebookPosition);
+        ImGui::DragFloat("np scale", &programState->notebookScale, 0.05, 0.1, 40.0);
+
 
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
