@@ -263,14 +263,12 @@ int main() {
     //hdr---------------------------------------------------------------------------------------------------------
     unsigned int VAO, VBO, RBO;
     unsigned int framebuffer;
-//    unsigned int textureColorBuffer;
     unsigned int colorBuffers[2];
     unsigned int pingpongFBO[2], pingpongColorBuffers[2];
 
     hdrBloomShader.use();
     hdrBloomShader.setInt("scene", 0);
     hdrBloomShader.setInt("bloomBlur", 1);
-//    hdrBloomShader.setInt("screenTexture", 2);
 
     blurShader.use();
     blurShader.setInt("image", 0);
@@ -313,13 +311,6 @@ int main() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,
                                GL_TEXTURE_2D, colorBuffers[i], 0);
     }
-
-//    glGenTextures(1, &textureColorBuffer);
-//    glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-//    glTexImage2D(GL_TEXTURE_2D, 4, GL_RGB, framebufferWidth,
-//                            framebufferHeight, GL_TRUE);
-//    glBindTexture(GL_TEXTURE_2D, 0);
-//    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, textureColorBuffer, 0);
 
 
     unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -441,10 +432,6 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
-
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
@@ -487,15 +474,36 @@ int main() {
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
 
-        pointLight.position = programState->ghostPosition + glm::vec3(0.0f, 2 + cos(currentFrame)*2, 0.0f);
+        pointLight.position = programState->ghostPosition + glm::vec3(0.7f, 0.5+ cos(currentFrame)*2, 0.4f);
         ourShader.setVec3("pointLight[1].position", pointLight.position);
         ourShader.setVec3("pointLight[1].ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight[1].diffuse", glm::vec3(10.0f));
+        ourShader.setVec3("pointLight[1].diffuse", glm::vec3(250.0f));
         ourShader.setVec3("pointLight[1].specular", pointLight.specular);
         ourShader.setFloat("pointLight[1].constant", pointLight.constant);
-        ourShader.setFloat("pointLight[1].linear", pointLight.linear);
-        ourShader.setFloat("pointLight[1].quadratic", pointLight.quadratic);
+        ourShader.setFloat("pointLight[1].linear", 0.7f);
+        ourShader.setFloat("pointLight[1].quadratic", 1.8f);
         ourShader.setVec3("color[1]", color2);
+
+        pointLight.position = glm::vec3(-0.3f, 1.3f, 12.8f);
+        ourShader.setVec3("pointLight[2].position", pointLight.position);
+        ourShader.setVec3("pointLight[2].ambient", pointLight.ambient);
+        ourShader.setVec3("pointLight[2].diffuse", glm::vec3(15.0f));
+        ourShader.setVec3("pointLight[2].specular", pointLight.specular);
+        ourShader.setFloat("pointLight[2].constant", pointLight.constant);
+        ourShader.setFloat("pointLight[2].linear", 0.7f);
+        ourShader.setFloat("pointLight[2].quadratic", 1.8f);
+        ourShader.setVec3("color[2]", glm::vec3(1.0f, 1.0f, 1.0f));
+
+
+        pointLight.position = glm::vec3(0.23f, 1.3f, 12.8f);
+        ourShader.setVec3("pointLight[3].position", pointLight.position);
+        ourShader.setVec3("pointLight[3].ambient", pointLight.ambient);
+        ourShader.setVec3("pointLight[3].diffuse", glm::vec3(15.0f));
+        ourShader.setVec3("pointLight[3].specular", pointLight.specular);
+        ourShader.setFloat("pointLight[3].constant", pointLight.constant);
+        ourShader.setFloat("pointLight[3].linear", 0.7f);
+        ourShader.setFloat("pointLight[3].quadratic", 1.8f);
+        ourShader.setVec3("color[3]", glm::vec3(1.0f, 1.0f, 1.0f));
 
 
         //Directional Light
@@ -560,7 +568,6 @@ int main() {
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, programState->candlePosition);
-        //model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(programState->candleScale));
         ourShader.setMat4("model", model);
         candle.Draw(ourShader);
@@ -644,8 +651,6 @@ int main() {
 
         blurShader.use();
 
-//        blurShader.setInt("framebufferWidth", SCR_WIDTH);
-//        blurShader.setInt("framebufferHeight", SCR_HEIGHT);
 
         glBindVertexArray(VAO);
         for (unsigned int i = 0; i < amount; i++) {
@@ -670,9 +675,6 @@ int main() {
 
         hdrBloomShader.use();
 
-//        hdrBloomShader.setInt("framebufferWidth", framebufferWidth);
-//        hdrBloomShader.setInt("framebufferHeight", framebufferHeight);
-
         hdrBloomShader.setBool("hdr", programState->hdr);
         hdrBloomShader.setBool("bloom", programState->bloom);
         hdrBloomShader.setFloat("exposure", programState->exposure);
@@ -681,9 +683,6 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, pingpongColorBuffers[!horizontal]);
-//        glActiveTexture(GL_TEXTURE2);
-//        glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
@@ -706,7 +705,6 @@ int main() {
     glDeleteFramebuffers(1, &framebuffer);
     glDeleteFramebuffers(2, pingpongFBO);
 
-//    glDeleteTextures(1, &textureColorBuffer);
     glDeleteTextures(2, colorBuffers);
     glDeleteTextures(2, pingpongColorBuffers);
 
@@ -753,9 +751,6 @@ void processInput(GLFWwindow *window) {
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
-    //glViewport(0, 0, width, height);
     SCR_WIDTH = width;
     SCR_HEIGHT = height;
 }

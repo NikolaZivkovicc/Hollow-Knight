@@ -31,7 +31,7 @@ in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
 
-#define NR_OF_POINT_LIGHTS 2
+#define NR_OF_POINT_LIGHTS 4
 
 uniform PointLight pointLight[NR_OF_POINT_LIGHTS];
 uniform DirLight dirLight;
